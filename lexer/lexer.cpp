@@ -3,52 +3,94 @@
 #include "token.hpp"
 using namespace std;
     class Lexer {
-        public:
+        private:
             int position;
-            int readPosition;
             char ch;
             string input;
-        public:
-            int load(string hello) {
-                input = hello;
-                readPosition = 0;
-                return 0;
+            
+            
+            //helper functions
+            string IdentHelper() {
+                int pos = position;
+                do {
+                    readChar();
+                }while(isalpha(ch) );
+                return (input.substr(pos,position-pos));
+                
+                
+            }
+            char peekNext() {
+                if(readPosition>input.size()){
+                    return EOF;
+                }
+                else {
+                    return input[readPosition];
+                }
+            }
+            string digitHelper() {
+                int pos = position;
+                while(  isdigit(ch)  ) {
+                    readChar();
+                }
+                return input.substr(pos,position-pos);
+            }
+            void helperSkipEmpty(){
+                if(ch==' '){
+                    readChar();
+                }
+                
             }
             void readChar() {
+                if(readPosition>=input.size()){
+                    ch = EOF;
+                }
+                else {
+
                 position=readPosition;
-                ch = input[position];
+                ch = input[readPosition];
+                }
                 readPosition++;
                 // cout << "position: " << position << ", readPosition: " << readPosition << ", ch: '" << ch << "'" << endl;
                 
             }
+        public:
+            int readPosition;
+            void load(string hello) {
+                input = hello;
+                readPosition = 0;
+            }
             Token nextToken() {
+
                 readChar();
+                helperSkipEmpty();
                 Token output;
                 switch(ch){
                     case '=':
-                        output.value = ch;
+                        if(peekNext()=='='){
+                            char local = ch;
+                            readChar();
+                            output.type = "EQUALITY";
+                            output.value = "==";
+                        }
+                        else {output.value = ch;
                         output.type = singleTokenTypes[ch];
+                        }
+                        break;
+                    case '!':
+                        if(peekNext()=='='){
+                            char local = ch;
+                            readChar();
+                            output.type = "INEQUALITY";
+                            output.value = "!=";
+                        }else {
+                            output.type = singleTokenTypes[ch];
+                            output.value = ch;
+                        }
                         break;
                     case '+':
-                        output.value = ch;
-                        output.type = singleTokenTypes[ch];
-                        break;
                     case '*':
-                        output.value = ch;
-                        output.type = singleTokenTypes[ch];
-                        break;
                     case '/':
-                        output.value = ch;
-                        output.type = singleTokenTypes[ch];
-                        break;
-                    case ' ':
-                        output.value = ch;
-                        output.type = singleTokenTypes[ch];
-                        break;  
                     case ')':
-                        output.value = ch;
-                        output.type = singleTokenTypes[ch];
-                        break;
                     case '(':
                         output.value = ch;
                         output.type = singleTokenTypes[ch];
@@ -57,7 +99,7 @@ using namespace std;
                         if(isalpha(ch)){
                             output.value = IdentHelper();
                             if(keywords.find(output.value)!=keywords.end()){
-                                output.type = "KEYWORD";
+                                output.type = keywords[output.value];
                             }     
                             else {
                             output.type = "IDENTIFIER";
@@ -68,52 +110,42 @@ using namespace std;
                         }
                         else if(isdigit(ch)) {
                             output.value = digitHelper();
-                            output.type = "INTEGER";
+                            output.type = INTEGER;
                             position--;
                             readPosition--;
                         }
                         else {
                             output.value = ch;
-                            output.type = "ILLEGAL";
+                            output.type = ILLEGAL;
                         }
                         
                     
                 }
-                // cout << output.value << ',' << output.type << '\n';
+                cout << output.value << ',' << output.type << '\n';
                 
                 return output;
 
             }
-            string IdentHelper() {
-                int pos = position;
-                do {
-                    readChar();
-                }while(isalpha(ch));
-                return input.substr(pos,position-pos);
-                
-                
-            }
-            string digitHelper() {
-                int pos = position;
-                do {
-                    readChar();
-                }while(isdigit(ch));
-                return input.substr(pos,position-pos);
-            }
+            
             
     };
 
 int main(){
+
+    string hello="";
     Lexer bello;
-    string hello = "=++/*balls()9999999999999999balls let ";
-    bello.load(hello);
-    Token output = bello.nextToken();
-    while(output.type!="ILLEGAL"){
-        cout  << output.value << ',' << output.type << '\n';
+    cout << "Welcome to krunkey language please input your commands" << '\n';
+    bello.load("vgdhcbjnsdv!=!!++");
+    Token output;
+    
+    do
+    {
+        getline (cin , hello);
+        bello.load(hello);
+        do{
         output = bello.nextToken();
-    }
-
-
-
+        cout  << output.value << ',' << output.type << '\n';
+    } while (bello.readPosition-1 < hello.size());
+    }while (hello != "quit" || hello != "QUIT");
     return 0;
 }
